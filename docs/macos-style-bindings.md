@@ -25,6 +25,8 @@ Backups: `~/.config/hypr/bindings.lua.bak.macos.<ts>` and `~/.config/foot/foot.i
 | `ALT+F` | Full screen | Hyprland `window.fullscreen` (fullscreen mode) |
 | `ALT+W` | Close window | Hyprland `window.close` |
 | `ALT+SPACE` | Omarchy menu | Spotlight-style launcher (`omarchy-menu toggle`) |
+| `ALT+LMB` (drag) | Move window | Hyprland `window.drag` — mirrors `SUPER+LMB` |
+| `ALT+RMB` (drag) | Resize window | Hyprland `window.resize` — mirrors `SUPER+RMB` |
 
 Already present by default (no change needed): `ALT+TAB` / `ALT+SHIFT+TAB` window cycling.
 

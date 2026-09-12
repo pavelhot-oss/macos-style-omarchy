@@ -194,6 +194,10 @@ end)
 o.bind("ALT + F", "Full screen (macOS)", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
 o.bind("ALT + W", "Close window (macOS)", hl.dsp.window.close())
 o.bind("ALT + SPACE", "Omarchy menu (macOS)", "omarchy-menu toggle")
+
+-- Drag window with Alt+Left button (mirrors SUPER+Left). Alt+Right = resize.
+o.bind("ALT + mouse:272", "Move window (macOS)", hl.dsp.window.drag(), { mouse = true })
+o.bind("ALT + mouse:273", "Resize window (macOS)", hl.dsp.window.resize(), { mouse = true })
 -- ============================================================================
 -- macOS-style bindings -- END
 -- ============================================================================
