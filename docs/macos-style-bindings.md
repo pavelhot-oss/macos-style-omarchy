@@ -22,7 +22,8 @@ Backups: `~/.config/hypr/bindings.lua.bak.macos.<ts>` and `~/.config/foot/foot.i
 | `ALT+A` | Select all | GUI: sends Ctrl+A. Terminal: copies entire scrollback to clipboard (`wl-copy`) |
 | `ALT+Z` | Undo | sends Ctrl+Z |
 | `ALT+Q` | Quit app | Terminal: closes window. GUI: sends Ctrl+Q |
-| `ALT+F` | Full screen | Hyprland `window.fullscreen` (fullscreen mode) |
+| `ALT+F` | Maximize (Full width) | Hyprland `fullscreen(mode="maximized")` — fills screen, keeps browser tabs/address bar and the Omarchy taskbar |
+| `ALT+SHIFT+F` | True fullscreen | Hyprland `fullscreen(mode="fullscreen")` — edge-to-edge, hides chrome + taskbar |
 | `ALT+W` | Close window | Hyprland `window.close` |
 | `ALT+SPACE` | Omarchy menu | Spotlight-style launcher (`omarchy-menu toggle`) |
 | `ALT+LMB` (drag) | Move window | Hyprland `window.drag` — mirrors `SUPER+LMB` |

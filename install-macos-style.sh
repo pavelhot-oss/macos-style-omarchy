@@ -191,7 +191,8 @@ o.bind("ALT + Q", "Quit app (macOS)", function()
   end
 end)
 
-o.bind("ALT + F", "Full screen (macOS)", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
+o.bind("ALT + F", "Full screen (macOS)", hl.dsp.window.fullscreen({ mode = "maximized" }))
+o.bind("ALT + SHIFT + F", "True fullscreen (macOS)", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
 o.bind("ALT + W", "Close window (macOS)", hl.dsp.window.close())
 o.bind("ALT + SPACE", "Omarchy menu (macOS)", "omarchy-menu toggle")
 
