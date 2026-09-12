@@ -91,6 +91,17 @@ autoload -Uz edit-command-line
 zle -N edit-command-line
 bindkey '^x^e' edit-command-line
 
+# --- Key bindings (zsh omits these; bash/readline has them) ---
+bindkey '^[[3~'   delete-char         # Delete (forward)
+bindkey '^[[H'    beginning-of-line   # Home
+bindkey '^[[F'    end-of-line         # End
+bindkey '^[OH'    beginning-of-line   # Home (application mode)
+bindkey '^[OF'    end-of-line         # End (application mode)
+bindkey '^[[1;3D' backward-word       # Alt+Left
+bindkey '^[[1;3C' forward-word        # Alt+Right
+bindkey '^[[1;5D' backward-word       # Ctrl+Left
+bindkey '^[[1;5C' forward-word        # Ctrl+Right
+
 # --- fzf (if installed) ---
 command -v fzf >/dev/null && {
   source <(fzf --zsh)
