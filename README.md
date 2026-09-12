@@ -29,3 +29,25 @@ full key mapping, trade-offs, and manual revert/reuse instructions.
 
 Idempotent and safe: re-running skips what is already applied, and every
 modified file is backed up to `<file>.bak.macos.<timestamp>` first.
+
+## Magic word for opencode (global `/omarchyUI`)
+
+The repo ships a global slash-command at `.opencode/command/omarchyUI.md`. It
+loads the tweak memory, finds the live configs, and applies/reverts/ syncs the
+repo — a one-stop entry point.
+
+To install it globally:
+
+```bash
+cp .opencode/command/omarchyUI.md ~/.config/opencode/command/
+```
+
+Then restart opencode. Use it like:
+
+```
+/omarchyUI make alt+f true fullscreen
+/omarchyUI revert the thumb button block
+```
+
+The global copy works from any directory. The project-level version (inside
+the cloned repo) also works when your cwd is the repo itself.
