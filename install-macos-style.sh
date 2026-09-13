@@ -10,6 +10,7 @@
 #   ./install-macos-style.sh --dry-run  # show what would happen
 #   ./install-macos-style.sh --no-zsh   # skip zsh / shell switch
 #   ./install-macos-style.sh --no-hypr  # skip Hyprland bindings
+#   ./install-macos-style.sh --no-hyprbars  # skip titlebar buttons plugin
 #   ./install-macos-style.sh --no-foot  # skip foot config
 # ============================================================================
 set -euo pipefail
@@ -18,6 +19,7 @@ set -euo pipefail
 DRY_RUN=0
 INSTALL_ZSH=1
 APPLY_HYPR=1
+APPLY_HYPRBARS=1
 APPLY_FOOT=1
 TS="$(date +%s)"
 
@@ -41,6 +43,7 @@ for arg in "$@"; do
         --dry-run)  DRY_RUN=1 ;;
         --no-zsh)   INSTALL_ZSH=0 ;;
         --no-hypr)  APPLY_HYPR=0 ;;
+        --no-hyprbars) APPLY_HYPRBARS=0 ;;
         --no-foot)  APPLY_FOOT=0 ;;
         -h|--help)
             sed -n '/^# Usage:/,/^# ==/{ /^# ==/d; s/^# //; s/^#//; p }' "$0"
@@ -132,7 +135,7 @@ fi
 
 # ── 4. Hyprland bindings ───────────────────────────────────────────────────
 HYPR_BINDINGS=~/.config/hypr/bindings.lua
-HYPR_MARKER="macOS-style bindings -- BEGIN"
+HYPR_MARKER="macOS-style bindings (ALT ~= Cmd) -- BEGIN"
 
 if (( APPLY_HYPR )); then
     if [[ -f "$HYPR_BINDINGS" ]] && grep -qF "$HYPR_MARKER" "$HYPR_BINDINGS" 2>/dev/null; then
@@ -229,6 +232,101 @@ HYPR_EOF
     fi
 fi
 
+# ── 4b. Hyprbars titlebar buttons ───────────────────────────────────────────
+HYPRBARS_MARKER="Titlebar buttons (hyprbars) -- BEGIN"
+HYPRBARS_PLUGIN_SO="/var/cache/hyprpm/ppp/hyprland-plugins/hyprbars.so"
+
+if (( APPLY_HYPRBARS )); then
+    if [[ -f "$HYPR_BINDINGS" ]] && grep -qF "$HYPRBARS_MARKER" "$HYPR_BINDINGS" 2>/dev/null; then
+        ok "Titlebar buttons already applied (bindings.lua) — skipping"
+    else
+        info "Setting up hyprbars titlebar buttons (close/minimize/maximize) …"
+
+        # 4b-i. Install + enable the hyprbars Hyprland plugin (builds from
+        # source; needs git + cmake + network the first time).
+        if hyprctl plugin list 2>/dev/null | grep -q hyprbars; then
+            ok "hyprbars plugin already loaded"
+        elif command -v hyprpm >/dev/null 2>&1; then
+            info "Installing hyprland-plugins (hyprbars) via hyprpm …"
+            run "hyprpm update || true"
+            run "echo | hyprpm add https://github.com/hyprwm/hyprland-plugins"
+            run "hyprpm enable hyprbars"
+            run "hyprctl plugin list | grep -q hyprbars || hyprpm reload"
+        else
+            warn "hyprpm not found — skipping hyprbars install"
+        fi
+
+        # 4b-ii. Append the titlebar buttons config if not present.
+        if [[ -f "$HYPR_BINDINGS" ]] && grep -qF "$HYPRBARS_MARKER" "$HYPR_BINDINGS" 2>/dev/null; then
+            ok "Titlebar buttons config already in bindings.lua"
+        else
+            backup_file "$HYPR_BINDINGS"
+            run "cat >> '$HYPR_BINDINGS'" <<'HYPRBARS_EOF'
+-- ============================================================================
+-- Titlebar buttons (hyprbars) -- BEGIN
+-- macOS-style close / minimize / maximize buttons on every window.
+-- Requires the hyprbars plugin (install: hyprpm add https://github.com/hyprwm/
+-- hyprland-plugins && hyprpm enable hyprbars). Minimize is emulated: Hyprland
+-- has no true minimize, so the window is parked on a hidden "minimized"
+-- special workspace (ALT+M shows/hides it).
+-- ============================================================================
+hl.plugin.load("/var/cache/hyprpm/ppp/hyprland-plugins/hyprbars.so")
+
+local hyprbars_loaded = false
+for _, p in ipairs(hl.get_loaded_plugins() or {}) do
+  if p.name == "hyprbars" then
+    hyprbars_loaded = true
+    break
+  end
+end
+
+if hyprbars_loaded then
+  hl.config({
+    plugin = {
+      hyprbars = {
+        bar_height = 22,
+        bar_padding = 7,
+        bar_button_padding = 5,
+        bar_color = "rgba(24283bdd)",
+        col = { text = "rgb(a9b1d6)" },
+        bar_text_size = 11,
+        bar_text_font = "sans",
+        bar_text_align = "left",
+        bar_buttons_alignment = "left",
+        bar_precedence_over_border = true,
+        icon_on_hover = true,
+        on_double_click = "hyprctl dispatch 'hl.dsp.window.fullscreen({ mode = \"maximized\", action = \"toggle\" })'",
+      },
+    },
+  })
+
+  local function hb_button(bg, fg, icon, cmd)
+    hl.plugin.hyprbars.add_button({
+      bg_color = bg,
+      fg_color = fg,
+      size = 11,
+      icon = icon,
+      action = "hyprctl dispatch '" .. cmd .. "'",
+    })
+  end
+
+  -- Left-to-right: close, minimize, maximize (macOS traffic lights).
+  hb_button("rgb(f7768e)", "rgb(1a1b26)", "×", "hl.dsp.window.close()")
+  hb_button("rgb(e0af68)", "rgb(1a1b26)", "–", 'hl.dsp.window.move({ workspace = "special:minimized", follow = false })')
+  hb_button("rgb(9ece6a)", "rgb(1a1b26)", "+", 'hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" })')
+end
+
+-- Show/hide the "minimized" special workspace (restore minimized windows).
+o.bind("ALT + M", "Restore minimized windows (macOS)", hl.dsp.workspace.toggle_special("minimized"))
+-- ============================================================================
+-- Titlebar buttons (hyprbars) -- END
+-- ============================================================================
+HYPRBARS_EOF
+            ok "Titlebar buttons config appended"
+        fi
+    fi
+fi
+
 # ── 5. Foot config ─────────────────────────────────────────────────────────
 FOOT_INI=~/.config/foot/foot.ini
 FOOT_PIPE_MARKER="pipe-scrollback=.*Mod1"
@@ -290,6 +388,10 @@ echo "Full paths:"
 echo "  Bindings:   $HYPR_BINDINGS"
 echo "  Foot:       $FOOT_INI"
 echo "  zsh:        ~/.zshrc"
+echo "  hyprbars:   $HYPRBARS_PLUGIN_SO"
 echo "  Backups:    ~/.config/hypr/bindings.lua.bak.macos.*"
+echo "              ~/.config/hypr/bindings.lua.bak.hyprbars.*"
 echo "              ~/.config/foot/foot.ini.bak.macos.*"
 echo ""
+echo "hyprbars note: rebuild the plugin after Hyprland upgrades with:"
+echo "  hyprpm update"
